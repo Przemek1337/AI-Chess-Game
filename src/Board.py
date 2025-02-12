@@ -1,6 +1,7 @@
 from const import *
 from square import Square
 from Piece import *
+from MovePiece import MovePiece
 class Board:
     def __init__(self):
         self.squares = [[0,0,0,0,0,0,0,0] for col in range(COLS)]
@@ -12,6 +13,65 @@ class Board:
         for row in range(ROWS):
             for col in range(COLS):
                 self.squares[row][col] = Square(row, col)
+    def CalculateMoves(self, piece, row, col):
+        def PawnMoves():
+            steps = 1 if piece.moved else 2
+            start = row + piece.direction
+            end = (row + (piece.direction * (1+steps)))
+            for move_row in range(start, end, piece.direction):
+                if Square.InRange(move_row):
+                    if self.squares[move_row][col].IsEmpty():
+                        initial = Square(row, col)
+                        final = Square(move_row, col)
+                        move = MovePiece(initial, final)
+                        piece.add_move(move)
+                    else:
+                        break
+                else:
+                    break
+            possible_move_row = row + piece.direction
+            possible_move_cols = [col-1, col+1]
+            for possible_move_col in possible_move_cols:
+                if Square.InRange(possible_move_row, possible_move_col):
+                    if self.squares[possible_move_row][possible_move_col].HasRivalPiece(piece.color):
+                        initial = Square(row, col)
+                        final = Square(possible_move_row, possible_move_col)
+                        move = MovePiece(initial, final)
+                        piece.add_move(move)
+
+        def KnightMoves():
+            possible_moves = [
+                (row-2, col+1),
+                (row-1, col+2),
+                (row+1, col+2),
+                (row+2, col+1),
+                (row+2, col-1),
+                (row+1, col-2),
+                (row-1, col-2),
+                (row-2, col-1)
+            ]
+            for possible_move in possible_moves:
+                possible_move_row, possible_move_col = possible_move
+                if Square.InRange(possible_move_row, possible_move_col):
+                    if self.squares[possible_move_row][possible_move_col].IsEmptyOrRivalPiece(piece.color):
+                        initial = Square(row,col)
+                        final = Square(possible_move_row,possible_move_col)
+                        move = MovePiece(initial,final)
+                        piece.add_move(move)
+
+        if piece.name == 'pawn':
+            PawnMoves()
+        elif piece.name == 'knight':
+            KnightMoves()
+        elif piece.name == 'bishop':
+            pass
+        elif piece.name == 'rook':
+            pass
+        elif piece.name == 'queen':
+            pass
+        elif piece.name == 'king':
+            pass
+
     def _add_pieces(self, color):
         row_pawn, row_other = (6,7) if color == 'white' else (1,0)
         #pawns
